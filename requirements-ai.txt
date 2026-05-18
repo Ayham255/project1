@@ -1,0 +1,3 @@
+# AI packages will be added after checking Jetson CUDA/JetPack compatibility.
+# Do not install torch/ultralytics blindly on Jetson.
+# Note: The virtual environment currently contains torch, torchvision, torchaudio, and ultralytics.
