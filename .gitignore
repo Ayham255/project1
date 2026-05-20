@@ -9,3 +9,4 @@ env/
 *.zip
 *.pt
 .DS_Store
+.speech_cache/

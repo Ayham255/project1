@@ -48,33 +48,44 @@ def test_two_cameras(idx0=0, idx1=1):
         print("Error: No cameras could be opened.")
         return
         
-    print("Press ESC to close.")
+    import time
     
+    start_time = time.time()
+    frames = 0
+    saved0 = False
+    saved1 = False
+
     try:
-        while True:
+        while frames < 100:  # Run for 100 frames
             if cam0_ok:
                 ret0, frame0 = cap0.read()
                 if ret0:
-                    cv2.imshow(f"Camera {idx0}", frame0)
+                    if not saved0:
+                        cv2.imwrite(f"camera_{idx0}_test.jpg", frame0)
+                        print(f"Saved test image: camera_{idx0}_test.jpg")
+                        saved0 = True
                 else:
                     print(f"Failed to read from camera {idx0}")
                     
             if cam1_ok:
                 ret1, frame1 = cap1.read()
                 if ret1:
-                    cv2.imshow(f"Camera {idx1}", frame1)
+                    if not saved1:
+                        cv2.imwrite(f"camera_{idx1}_test.jpg", frame1)
+                        print(f"Saved test image: camera_{idx1}_test.jpg")
+                        saved1 = True
                 else:
                     print(f"Failed to read from camera {idx1}")
-                    
-            key = cv2.waitKey(1) & 0xFF
-            if key == 27: # ESC
-                break
+            
+            frames += 1
+            if frames % 10 == 0:
+                print(f"Processed {frames} frames...")
+                
     finally:
         if cam0_ok:
             cap0.release()
         if cam1_ok:
             cap1.release()
-        cv2.destroyAllWindows()
         print("Dual camera test complete.")
 
 if __name__ == "__main__":

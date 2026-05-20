@@ -12,8 +12,8 @@ def estimate_distance(detection):
     """
     label = detection.get("label", "object")
     if label == "person":
-        return "approximately 2 meters away"
-    return "unknown distance"
+        return "على بعد حوالي مترين"
+    return "مسافة غير معروفة"
 
 def get_direction(bbox, frame_width):
     """
@@ -24,8 +24,8 @@ def get_direction(bbox, frame_width):
     
     third = frame_width / 3
     if center_x < third:
-        return "on your left"
+        return "على يسارك"
     elif center_x > 2 * third:
-        return "on your right"
+        return "على يمينك"
     else:
-        return "in front of you"
+        return "أمامك"

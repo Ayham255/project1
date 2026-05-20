@@ -9,10 +9,8 @@ while True:
         print("Camera failed")
         break
 
-    cv2.imshow("Camera Test", frame)
-
-    if cv2.waitKey(1) == 27:
-        break
+    cv2.imwrite("camera_test.jpg", frame)
+    print("Saved test image: camera_test.jpg")
+    break
 
 cap.release()
-cv2.destroyAllWindows()
