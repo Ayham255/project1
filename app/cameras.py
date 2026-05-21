@@ -2,11 +2,11 @@ import cv2
 
 def gstreamer_pipeline(
     sensor_id=0,
-    capture_width=1920,
-    capture_height=1080,
+    capture_width=1280,
+    capture_height=720,
     display_width=640,
     display_height=480,
-    framerate=30,
+    framerate=60,
     flip_method=2,
 ):
     return (
@@ -35,7 +35,7 @@ def open_camera(index, width, height, fps):
         sensor_id=index,
         display_width=width,
         display_height=height,
-        framerate=30 # Using 30 as it's a stable capture framerate for IMX219
+        framerate=60 # Using 60 because IMX219 1280x720 mode requires 60fps
     )
     cap = cv2.VideoCapture(pipeline, cv2.CAP_GSTREAMER)
     

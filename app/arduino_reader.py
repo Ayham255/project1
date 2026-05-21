@@ -170,6 +170,10 @@ class ArduinoReader:
     def set_alarm_distance(self, cm):
         return self.send_command(f"d{cm}")
 
+    def pothole_alert(self):
+        """Intermittent buzzer + vibration for pothole warning (handled by Arduino 'palert' command)."""
+        self.send_command("palert")
+
     # =================== Data Reading ===================
 
     def _read_loop(self):
@@ -241,13 +245,19 @@ class ArduinoReader:
         # Calculate total acceleration in g units
         magnitude = math.sqrt(ax**2 + ay**2 + az**2) / LSB_PER_G
 
+        # Debug print magnitude every 1 second
+        if not hasattr(self, '_last_debug_print') or (now - self._last_debug_print) >= 1.0:
+            print(f"[DEBUG] Current MPU Magnitude: {magnitude:.2f}g")
+            self._last_debug_print = now
+
         # Cooldown check
         if (now - self._last_fall_alert) < FALL_COOLDOWN_SECONDS:
             return
 
-        # Direct collision / impact detection (threshold 2.5g)
-        if magnitude > 2.5:
-            print(f"Collision Detection: Strong impact detected (magnitude={magnitude:.2f}g)")
+        # Force=1: Ultra-sensitive collision detection (resting is ~1.0g)
+        # Any deviation > 0.05g from 1.0g triggers alert
+        if abs(magnitude - 1.0) > 0.05:
+            print(f"Collision Detection: Impact detected (magnitude={magnitude:.2f}g)")
             self._trigger_fall_alert(data)
 
     def _trigger_fall_alert(self, data):

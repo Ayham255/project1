@@ -10,3 +10,7 @@ env/
 *.pt
 .DS_Store
 .speech_cache/
+runs/
+pothole_snapshots/
+pothole_logs/
+datasets/

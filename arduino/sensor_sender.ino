@@ -212,6 +212,21 @@ void handleCommand(String cmd) {
     autoAlarm = false;
     Serial.println("{\"cmd\":\"stop\",\"ok\":true}");
   }
+  else if (cmd == "palert") {
+    // Intermittent pothole alert: 3 short bursts
+    autoAlarm = false;
+    for (int i = 0; i < 3; i++) {
+      digitalWrite(BUZZER_PIN, HIGH);
+      analogWrite(VIB_PIN, 255);
+      delay(200);
+      digitalWrite(BUZZER_PIN, LOW);
+      analogWrite(VIB_PIN, 0);
+      delay(150);
+    }
+    buzzerState = false;
+    vibState = false;
+    Serial.println("{\"cmd\":\"palert\",\"ok\":true}");
+  }
   else if (cmd == "r") {
     sendJSON();
   } 

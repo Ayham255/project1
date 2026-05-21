@@ -11,7 +11,7 @@ class DummyDetector:
         return [{"label": "person", "confidence": 0.95, "bbox": bbox}]
 
 class YoloDetector:
-    def __init__(self, model_path="yolov8n.pt"):
+    def __init__(self, model_path="yolov8s.pt"):
         print(f"Loading YOLO model from {model_path}...")
         try:
             from ultralytics import YOLO
@@ -25,7 +25,7 @@ class YoloDetector:
         if self.model is None:
             return []
             
-        results = self.model(frame, verbose=False)
+        results = self.model(frame, verbose=False, imgsz=320)
         detections = []
         
         for result in results:

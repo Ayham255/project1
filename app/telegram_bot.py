@@ -44,12 +44,25 @@ class TelegramBot:
         try:
             resp = requests.get(
                 f"{self.base_url}/getUpdates",
-                params={"timeout": 5, "allowed_updates": json.dumps(["message"])},
+                params={"timeout": 5, "allowed_updates": json.dumps(["message", "callback_query"])},
                 timeout=15
             )
             data = resp.json()
             if data.get("ok"):
                 for update in data.get("result", []):
+                    # Handle Callback Query
+                    if "callback_query" in update:
+                        cb = update["callback_query"]
+                        print(f"Telegram Bot: Callback Query received: {cb.get('data')}")
+                        if cb.get("data") == "stop_alarm":
+                            chat_id = cb.get("message", {}).get("chat", {}).get("id")
+                            if chat_id:
+                                self._handle_buzzer_command(chat_id, False)
+                            try:
+                                requests.post(f"{self.base_url}/answerCallbackQuery", json={"callback_query_id": cb["id"]})
+                            except: pass
+                        continue
+
                     msg = update.get("message", {})
                     chat_id = msg.get("chat", {}).get("id")
                     text = msg.get("text", "")
@@ -153,20 +166,27 @@ class TelegramBot:
 
     # =================== Send Methods ===================
 
-    def send_message(self, chat_id, text):
+    def send_message(self, chat_id, text, reply_markup=None):
         """Send a text message."""
         try:
-            requests.post(
+            payload = {
+                "chat_id": chat_id,
+                "text": text,
+                "parse_mode": "Markdown"
+            }
+            if reply_markup:
+                payload["reply_markup"] = reply_markup
+                
+            resp = requests.post(
                 f"{self.base_url}/sendMessage",
-                json={
-                    "chat_id": chat_id,
-                    "text": text,
-                    "parse_mode": "Markdown"
-                },
+                json=payload,
                 timeout=10
             )
+            data = resp.json()
+            if not data.get("ok"):
+                print(f"Telegram Bot: Send failed - {data}")
         except Exception as e:
-            print(f"Telegram Bot: Send failed - {e}")
+            print(f"Telegram Bot: Send Exception - {e}")
 
     def send_location(self, chat_id, latitude, longitude):
         """Send a GPS location pin."""
@@ -183,15 +203,36 @@ class TelegramBot:
         except Exception as e:
             print(f"Telegram Bot: Send location failed - {e}")
 
-    def broadcast(self, text):
+    def broadcast(self, text, reply_markup=None):
         """Send a message to all registered chats."""
         for chat_id in self.chat_ids.copy():
-            self.send_message(chat_id, text)
+            self.send_message(chat_id, text, reply_markup)
 
     def broadcast_location(self, latitude, longitude):
         """Send location to all registered chats."""
         for chat_id in self.chat_ids.copy():
             self.send_location(chat_id, latitude, longitude)
+
+    def send_photo(self, chat_id, photo_path, caption=None):
+        """Send a photo file to a chat."""
+        try:
+            with open(photo_path, "rb") as photo:
+                data = {"chat_id": chat_id}
+                if caption:
+                    data["caption"] = caption
+                requests.post(
+                    f"{self.base_url}/sendPhoto",
+                    data=data,
+                    files={"photo": photo},
+                    timeout=15,
+                )
+        except Exception as e:
+            print(f"Telegram Bot: Send photo failed - {e}")
+
+    def broadcast_photo(self, photo_path, caption=None):
+        """Send a photo to all registered chats."""
+        for chat_id in self.chat_ids.copy():
+            self.send_photo(chat_id, photo_path, caption)
 
     # =================== Fall Alert ===================
 
@@ -226,8 +267,15 @@ class TelegramBot:
 
         alert_msg += "\n⚠️ يرجى التحقق من سلامة الشخص فوراً!"
 
+        # Create inline keyboard for stop button
+        keyboard = {
+            "inline_keyboard": [[
+                {"text": "🔕 إيقاف الإنذار (Stop Alarm)", "callback_data": "stop_alarm"}
+            ]]
+        }
+
         # Send alert message to all users
-        self.broadcast(alert_msg)
+        self.broadcast(alert_msg, reply_markup=keyboard)
 
         # Send location pin if GPS is available
         if gps_fix and (lat != 0 or lon != 0):
