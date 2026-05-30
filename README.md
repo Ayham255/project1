@@ -246,6 +246,7 @@ http://<jetson-ip>:8000
 ## 👨‍💻 المطورون
 
 - **Ayham** - [GitHub](https://github.com/Ayham255)
+- **Hamza** - [GitHub](https://github.com/Hamza77-AI)
 
 ---
 
