@@ -1,0 +1,1 @@
+General YOLO models will be downloaded here automatically.
